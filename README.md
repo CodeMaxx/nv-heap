@@ -6,6 +6,9 @@ Implementation of the simplified version of the [paper](https://courses.engr.ill
 ### References
 
 <https://github.com/linux-pmfs>
+
 <https://github.com/snalli/mnemosyne-gcc>
+
 <https://github.com/pmem/linux-examples>
+
 <https://www.snia.org/sites/default/files/technical_work/final/NVMProgrammingModel_v1.2.pdf>
