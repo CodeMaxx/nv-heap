@@ -14,3 +14,5 @@ Implementation of the simplified version of the [paper](https://courses.engr.ill
 <https://www.snia.org/sites/default/files/technical_work/final/NVMProgrammingModel_v1.2.pdf>
 
 <https://github.com/nverinaud/SUPINFO-Classes/tree/master/1ADS/BONUS/NVArray>
+
+<https://cseweb.ucsd.edu/~swanson/papers/NVHeapsARIESThesis.pdf>
