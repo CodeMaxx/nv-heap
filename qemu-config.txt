@@ -1,0 +1,11 @@
+qemu-system-x86_64 -drive file=/home/abhikbose/vmware/cs695/ubuntu.qcow2,format=qcow2,index=0,media=disk \
+  -m 4G,slots=4,maxmem=32G \
+  -smp 4 \
+  -machine pc,accel=kvm,nvdimm=on \
+  -enable-kvm \
+  -vnc :0 \
+  -net nic \
+  -net user,hostfwd=tcp::2222-:22 \
+  -object memory-backend-file,id=mem1,share=on,mem-path=/home/abhikbose/vmware/cs695/ubuntu-pmem,size=4G,align=2M \
+  -device nvdimm,id=nvdimm1,memdev=mem1 \
+  -daemonize
