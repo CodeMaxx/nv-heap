@@ -1,9 +1,9 @@
-#include "../lib/pmem.h"
+#include "nvheap.h"
 using namespace std;
 
 struct ll {
 	int64_t val;
-	int64_t next;
+	NVPTR next;
 };
 
 struct ll * insert (struct ll * head, int64_t val) {
@@ -11,23 +11,23 @@ struct ll * insert (struct ll * head, int64_t val) {
 	// cout << "Insert: strted\n";
 	if (!head) {
 		// cout << "Insert: null head\n";
-		head = (struct ll *)pmem_malloc (sizeof(struct ll));
+		head = (struct ll *)nvh_malloc (sizeof(struct ll));
 		head -> val = val;
 		head -> next = -1;
 	}
 	else {
 		// cout << "Insert: valid head\n";
 		temp = head;
-		while (pmem_dptr(temp -> next)) {
-			temp = (struct ll *)pmem_dptr(temp -> next);
+		while (nvh_dptr(temp -> next)) {
+			temp = (struct ll *)nvh_dptr(temp -> next);
 		}
-		temp1 = (struct ll *)pmem_malloc (sizeof(struct ll));
+		temp1 = (struct ll *)nvh_malloc (sizeof(struct ll));
 		temp1 -> val = val;
 		temp1 -> next = -1;
-		temp -> next = pmem_pptr ((void *)temp1);
+		temp -> next = nvh_pptr ((void *)temp1);
 	}
-	pmem_set_root(head);
-	// cout << pmem_get_root() << endl;
+	nvh_set_root(head);
+	// cout << nvh_get_root() << endl;
 	// cout << "Insert: done\n";
 	return head;
 }
@@ -37,34 +37,26 @@ struct ll * remove (struct ll * head, int val) {
 	if (!head)
 		return head;
 	if (head -> val == val) {
-		temp = (struct ll *) pmem_dptr(head -> next);
-		pmem_free (head, sizeof(struct ll));
+		temp = (struct ll *) nvh_dptr(head -> next);
+		nvh_free (head, sizeof(struct ll));
 		head = temp;
 	}
 	else {
 		curr = head;
-		next = (struct ll *)pmem_dptr(curr ->next);
-		// while (next) {
-		// 	if (next -> val == val){
-		// 		temp = next;
-		//		next = next -> next;
-		// 		curr -> next = next -> next;
-		// 		free(temp);
-		// 	}
-		// }
+		next = (struct ll *)nvh_dptr(curr ->next);
 		while (next) {
 			if (next -> val == val) {
 				temp = next;
-				next = (struct ll *)pmem_dptr(next ->next);
-				curr -> next = pmem_pptr(next);
-				pmem_free(temp, sizeof(struct ll *));
+				next = (struct ll *)nvh_dptr(next ->next);
+				curr -> next = nvh_pptr(next);
+				nvh_free(temp, sizeof(struct ll *));
 				break;
 			}
 			curr = next;
-			next = (struct ll *)pmem_dptr(next -> next);
+			next = (struct ll *)nvh_dptr(next -> next);
 		}
 	}
-	pmem_set_root(head);
+	nvh_set_root(head);
 	return head;
 } 
 
@@ -74,36 +66,49 @@ void print (struct ll * head) {
 	while (temp) {
 		// cout << "print: In while";
 		cout << temp -> val << "->";
-		temp = (struct ll *)pmem_dptr(temp -> next);
+		temp = (struct ll *)nvh_dptr(temp -> next);
 	}
 	cout << "NULL" << endl;
 }
 
 int main (int argc, char * argv[]) {
 	ios_base::sync_with_stdio(false);
-	pmem_init(argv[1], argv[2]);
+	if (nvh_init(argv[1], argv[2]) < 0) {
+		cerr << "Failed to initialize NV-heap\n";
+		exit(1);
+	}
 	struct ll * head;
-	head = (struct ll *) pmem_get_root();
-	int option, val, run = 1;
+	head = (struct ll *) nvh_get_root();
+	char option;
+	int val, run = 1;
+	cout << "Insert Front: i val, Print: p, Delete val: d val, Quit: q\n";
 	while (run) {
 		cin >> option;
 		switch (option)
 		{
-			case (0):
+			case ('q'):
+			case ('Q'):
 			run = 0;
 			break;
-			case (1): 	//Insert
+			case ('i'): 	//Insert
+			case ('I'):
 			cin >> val;
 			head = insert (head, val);
 			break;
-			case (2):
+			case ('p'):
+			case ('P'):
 			print (head);
 			break;
-			case (3):
+			case ('d'):
+			case ('D'):
 			cin >> val;
 			head = remove (head, val);
 			break;
 		}
 	}
+	// Enable this to check Pointer safety
+	// cout << "Main: Calling lower abort\n";
+	// head -> next = nvh_pptr((void *)100);
+	nvh_close ();
 	return 0;
 }
