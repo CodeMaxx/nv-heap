@@ -3,10 +3,6 @@ using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
 
-NVPtr::NVPtr (int64_t offset) {
-    this.offset = offset;
-}
-
 NVPtr::operator = (const void* address) {
     if (!address)
         return -1;
@@ -22,18 +18,18 @@ NVPtr::operator = (const void* address) {
         exit(1);
     }
     // cout << "nvh_pptr: returning " << (uint64_t)((char *)address - (char *)nvh_base_addr) << endl;
-    return (uint64_t)((char *)address - (char *)nvh_base_addr);
+    offset = (uint64_t)((char *)address - (char *)nvh_base_addr);
 }
 
 NVPtr::get_dptr() {
-    if (this.offset > NVH_LENGTH || this.offset < -1){
+    if (offset > NVH_LENGTH || offset < -1){
         print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
         exit(1);
     }
-    if (this.offset == -1)
+    if (offset == -1)
         return NULL;
     // cout << "nvh_dptr got offset = " << endl;
-    return (void *)((char *)nvh_base_addr + this.offset);
+    return (void *)((char *)nvh_base_addr + offset);
 }
 
 
@@ -186,39 +182,12 @@ void * nvh_get_root () {
 
 // WILL Return 0 on success, -1 on error. Now 1 always
 int nvh_set_root (void *address) {
-    (*((int64_t *)nvh_base_addr + 128)) = nvh_pptr(address);
+    NVPtr root = address;
+    (*((int64_t *)nvh_base_addr + 128)) = root.get_offset();
     nvh_persist ();
     return 0;
 }
 
-int64_t nvh_pptr(void* address) {
-    if (!address)
-        return -1;
-    if ((char *)address < (char *)nvh_base_addr) {
-        cout << "Address given is not part of (lower) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-
-    if ((char *)address > ((char *)nvh_base_addr + NVH_LENGTH)) {
-        cout << "Address given is not part of (upper) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-    // cout << "nvh_pptr: returning " << (uint64_t)((char *)address - (char *)nvh_base_addr) << endl;
-    return (uint64_t)((char *)address - (char *)nvh_base_addr);
-}
-
-void * nvh_dptr (int64_t offset) {
-    if (offset > NVH_LENGTH || offset < -1){
-        print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
-        exit(1);
-    }
-    if (offset == -1)
-        return NULL;
-    // cout << "nvh_dptr got offset = " << endl;
-    return (void *)((char *)nvh_base_addr + offset);
-}
 // This checks whether the positionth BIT is 0 or 1 from base.
 int test_bit (uint64_t * base, int position) {
     if (base[position/(sizeof(uint64_t) * 8)] & ((uint64_t)1) << position % (sizeof(uint64_t) * 8))

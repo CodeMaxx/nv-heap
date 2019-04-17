@@ -20,9 +20,10 @@
 class NVPtr {
     int64_t offset;
 public:
-    NVPtr(int64_t offset);
+    NVPtr::NVPtr (int64_t offset) : offset(offset) {};
     void operator = (const void* address);
     void * get_dptr();
+    int64_t get_offset();
 }
 
 /*-----Following functions are for use by User written program-----*/
