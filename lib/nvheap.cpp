@@ -3,9 +3,11 @@ using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
 
-NVPtr::operator = (const void* address) {
-    if (!address)
-        return -1;
+void NVPtr::operator = (const void* address) {
+    if (!address) {
+        offset = -1;
+        return;
+    }
     if ((char *)address < (char *)nvh_base_addr) {
         cout << "Address given is not part of (lower) NV-Heap\n";
         cout << "Exiting.. \n";
@@ -21,11 +23,11 @@ NVPtr::operator = (const void* address) {
     offset = (uint64_t)((char *)address - (char *)nvh_base_addr);
 }
 
-NVPtr::operator = (const NVPtr &nvp) {
+void NVPtr::operator = (const NVPtr &nvp) {
     offset = nvp.offset;
 }
 
-void* NVPtr::get_dptr() {
+void* NVPtr::dptr() {
     if (offset > NVH_LENGTH || offset < -1){
         print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
         exit(1);
@@ -41,7 +43,7 @@ int64_t NVPtr::get_offset() {
 }
 
 
-void _print_err (const char * function_name, const char * message) {
+void print_err (const char * function_name, const char * message) {
     fprintf(stderr, "%s: %s.\n", function_name, message);
 }
 
@@ -185,12 +187,13 @@ int nvh_open(const char *file) {
 void * nvh_get_root () {
     if ((*((int64_t *)nvh_base_addr + 128)) == -1)
         return NULL;
-    return NVPtr(*((uint64_t *)nvh_base_addr + HEADER_LEGTH / ALLOC_RATIO_BYTE_BIT)).get_dptr();
+    return NVPtr(*((uint64_t *)nvh_base_addr + HEADER_LEGTH / ALLOC_RATIO_BYTE_BIT)).dptr();
 }
 
 // WILL Return 0 on success, -1 on error. Now 1 always
 int nvh_set_root (void *address) {
-    NVPtr root = address;
+    NVPtr root;
+    root = address;
     (*((int64_t *)nvh_base_addr + 128)) = root.get_offset();
     nvh_persist ();
     return 0;

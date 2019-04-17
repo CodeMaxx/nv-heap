@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cerrno>
-#include "nvptr.h"
 
 #define NVH_LENGTH              32768
 #define HEADER_LEGTH            1024
@@ -20,12 +19,17 @@
 class NVPtr {
     int64_t offset;
 public:
-    NVPtr::NVPtr (int64_t offset) : offset(offset) {};
+    NVPtr (int64_t offset) {
+    	this->offset = offset;
+    }
+    NVPtr () {
+    	offset = -1;
+    }
     void operator = (const void* address);
     void operator = (const NVPtr &nvp);
-    void* get_dptr();
+    void* dptr();
     int64_t get_offset();
-}
+};
 
 /*-----Following functions are for use by User written program-----*/
 int nvh_init (const char * file, const char * nvh_name);// Initialize a NV-Heap
