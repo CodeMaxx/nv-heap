@@ -3,7 +3,41 @@ using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
 
-void print_err (const char * function_name, const char * message) {
+NVPtr::NVPtr (int64_t offset) {
+    this.offset = offset;
+}
+
+NVPtr::operator = (const void* address) {
+    if (!address)
+        return -1;
+    if ((char *)address < (char *)nvh_base_addr) {
+        cout << "Address given is not part of (lower) NV-Heap\n";
+        cout << "Exiting.. \n";
+        exit(1);
+    }
+
+    if ((char *)address > ((char *)nvh_base_addr + NVH_LENGTH)) {
+        cout << "Address given is not part of (upper) NV-Heap\n";
+        cout << "Exiting.. \n";
+        exit(1);
+    }
+    // cout << "nvh_pptr: returning " << (uint64_t)((char *)address - (char *)nvh_base_addr) << endl;
+    return (uint64_t)((char *)address - (char *)nvh_base_addr);
+}
+
+NVPtr::get_dptr() {
+    if (this.offset > NVH_LENGTH || this.offset < -1){
+        print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
+        exit(1);
+    }
+    if (this.offset == -1)
+        return NULL;
+    // cout << "nvh_dptr got offset = " << endl;
+    return (void *)((char *)nvh_base_addr + this.offset);
+}
+
+
+void _print_err (const char * function_name, const char * message) {
     fprintf(stderr, "%s: %s.\n", function_name, message);
 }
 
@@ -147,38 +181,17 @@ int nvh_open(const char *file) {
 void * nvh_get_root () {
     if ((*((int64_t *)nvh_base_addr + 128)) == -1)
         return NULL;
-    return nvh_dptr((*((uint64_t *)nvh_base_addr + HEADER_LEGTH / ALLOC_RATIO_BYTE_BIT)));
+    return NVPtr(*((uint64_t *)nvh_base_addr + HEADER_LEGTH / ALLOC_RATIO_BYTE_BIT)).get_dptr();
 }
 
 // WILL Return 0 on success, -1 on error. Now 1 always
 int nvh_set_root (void *address) {
-    if ((char *)address < (char *)nvh_base_addr) {
-        cout << "Address given is not part of (lower) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-
-    if ((char *)address > ((char *)nvh_base_addr + NVH_LENGTH)) {
-        cout << "Address given is not part of (upper) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-    if (!address){
-        // print_err ("nvh_set_root", "NULL");
-        (*((int64_t *)nvh_base_addr + 128)) = -1;
-        nvh_persist ();
-        return 0;
-    }
-    else {
-        // print_err("nvh_set_root", "Valid address");
-        // cout << "nvh_set_root got " << nvh_pptr(address) << endl;
-        (*((int64_t *)nvh_base_addr + 128)) = nvh_pptr(address);
-        nvh_persist ();
-        return 0;
-    }
+    (*((int64_t *)nvh_base_addr + 128)) = nvh_pptr(address);
+    nvh_persist ();
+    return 0;
 }
 
-int64_t nvh_pptr (void * address) {
+int64_t nvh_pptr(void* address) {
     if (!address)
         return -1;
     if ((char *)address < (char *)nvh_base_addr) {

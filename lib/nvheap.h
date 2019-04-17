@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cerrno>
+#include "nvptr.h"
 
 #define NVH_LENGTH              32768
 #define HEADER_LEGTH            1024
@@ -16,8 +17,15 @@
 #define ALLOC_RATIO_BYTE_BYTE   64
 #define ALLOC_RATIO_BYTE_BIT    8
 
+class NVPtr {
+    int64_t offset;
+public:
+    NVPtr(int64_t offset);
+    void operator = (const void* address);
+    void * get_dptr();
+}
+
 /*-----Following functions are for use by User written program-----*/
-typedef int64_t NVPTR;                                  // NVPTR = Non volatile pointer
 int nvh_init (const char * file, const char * nvh_name);// Initialize a NV-Heap
 void * nvh_dptr (int64_t offset);                       // Given a NVptr return Dereferencable ptr
 void * nvh_get_root ();                                 // Return existing root of the NV-Heap
@@ -44,3 +52,4 @@ int test_bit (uint64_t * base, int position);
 struct nvh_length {
 	uint64_t length;
 };
+

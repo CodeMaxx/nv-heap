@@ -3,7 +3,7 @@ using namespace std;
 
 struct ll {
     int64_t val;
-    NVPTR next;
+    NVPtr next;
 };
 
 struct ll * insert (struct ll * head, int64_t val) {
@@ -18,13 +18,13 @@ struct ll * insert (struct ll * head, int64_t val) {
     else {
         // cout << "Insert: valid head\n";
         temp = head;
-        while (nvh_dptr(temp -> next)) {
-            temp = (struct ll *)nvh_dptr(temp -> next);
+        while (temp->next.get_dptr()) {
+            temp = (struct ll *) temp->next.get_dptr();
         }
         temp1 = (struct ll *)nvh_malloc (sizeof(struct ll));
         temp1 -> val = val;
         temp1 -> next = -1;
-        temp -> next = nvh_pptr ((void *)temp1);
+        temp -> next = (void *)temp1;
     }
     nvh_set_root(head);
     // cout << nvh_get_root() << endl;
@@ -37,28 +37,28 @@ struct ll * remove (struct ll * head, int val) {
     if (!head)
         return head;
     if (head -> val == val) {
-        temp = (struct ll *) nvh_dptr(head -> next);
+        temp = (struct ll *) head->next.get_dptr();
         nvh_free (head, sizeof(struct ll));
         head = temp;
     }
     else {
         curr = head;
-        next = (struct ll *)nvh_dptr(curr ->next);
+        next = (struct ll *) curr->next.get_dptr();
         while (next) {
             if (next -> val == val) {
                 temp = next;
-                next = (struct ll *)nvh_dptr(next ->next);
-                curr -> next = nvh_pptr(next);
+                next = (struct ll *) next->next.get_dptr();
+                curr -> next = next;
                 nvh_free(temp, sizeof(struct ll *));
                 break;
             }
             curr = next;
-            next = (struct ll *)nvh_dptr(next -> next);
+            next = (struct ll *) next->next.get_dptr();
         }
     }
     nvh_set_root(head);
     return head;
-} 
+}
 
 void print (struct ll * head) {
     struct ll * temp = head;
@@ -66,7 +66,7 @@ void print (struct ll * head) {
     while (temp) {
         // cout << "print: In while";
         cout << temp -> val << "->";
-        temp = (struct ll *)nvh_dptr(temp -> next);
+        temp = (struct ll *) temp->next.get_dptr();
     }
     cout << "NULL" << endl;
 }
