@@ -21,7 +21,11 @@ NVPtr::operator = (const void* address) {
     offset = (uint64_t)((char *)address - (char *)nvh_base_addr);
 }
 
-NVPtr::get_dptr() {
+NVPtr::operator = (const NVPtr &nvp) {
+    offset = nvp.offset;
+}
+
+void* NVPtr::get_dptr() {
     if (offset > NVH_LENGTH || offset < -1){
         print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
         exit(1);
@@ -30,6 +34,10 @@ NVPtr::get_dptr() {
         return NULL;
     // cout << "nvh_dptr got offset = " << endl;
     return (void *)((char *)nvh_base_addr + offset);
+}
+
+int64_t NVPtr::get_offset() {
+    return offset;
 }
 
 
