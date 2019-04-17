@@ -3,6 +3,14 @@ using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
 
+NVPtr::NVPtr() {
+    offset = -1;
+}
+
+NVPtr::NVPtr(int64_t offset) {
+    this->offset = offset;
+}
+
 void NVPtr::operator = (const void* address) {
     if (!address) {
         offset = -1;

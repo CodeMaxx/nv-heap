@@ -19,12 +19,8 @@
 class NVPtr {
     int64_t offset;
 public:
-    NVPtr (int64_t offset) {
-    	this->offset = offset;
-    }
-    NVPtr () {
-    	offset = -1;
-    }
+    NVPtr();
+    NVPtr(int64_t offset);
     void operator = (const void* address);
     void operator = (const NVPtr &nvp);
     void* dptr();
