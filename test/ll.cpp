@@ -1,4 +1,7 @@
 #include "nvheap.h"
+#include "nvptr.h"
+#include "nvhtx.h"
+
 using namespace std;
 
 struct ll {

@@ -1,78 +1,8 @@
 #include "nvheap.h"
+#include "nvhutils.h"
 using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
-
-NVPtr::NVPtr() {
-    offset = -1;
-}
-
-NVPtr::NVPtr(int64_t offset) {
-    this->offset = offset;
-}
-
-void NVPtr::operator = (const void* address) {
-    if (!address) {
-        offset = -1;
-        return;
-    }
-    if ((char *)address < (char *)nvh_base_addr) {
-        cout << "Address given is not part of (lower) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-
-    if ((char *)address > ((char *)nvh_base_addr + NVH_LENGTH)) {
-        cout << "Address given is not part of (upper) NV-Heap\n";
-        cout << "Exiting.. \n";
-        exit(1);
-    }
-    // cout << "nvh_pptr: returning " << (uint64_t)((char *)address - (char *)nvh_base_addr) << endl;
-    offset = (uint64_t)((char *)address - (char *)nvh_base_addr);
-}
-
-void NVPtr::operator = (const NVPtr &nvp) {
-    offset = nvp.offset;
-}
-
-void* NVPtr::dptr() {
-    if (offset > NVH_LENGTH || offset < -1){
-        print_err ("nvh_dptr", "Given NVptr is out of this NV-Heap. Exiting.");
-        exit(1);
-    }
-    if (offset == -1)
-        return NULL;
-    // cout << "nvh_dptr got offset = " << endl;
-    return (void *)((char *)nvh_base_addr + offset);
-}
-
-int64_t NVPtr::get_offset() {
-    return offset;
-}
-
-
-void print_err (const char * function_name, const char * message) {
-    fprintf(stderr, "%s: %s.\n", function_name, message);
-}
-
-uint64_t hash64 (const char * str) {
-    uint64_t prime = 31;
-    uint64_t hash = 7;
-    while(*str) {
-        hash = hash * prime + *(str++);
-    }
-    return hash;
-}
-
-void u64itostr (uint64_t val, char * str) {
-    int i;
-    for (i = 0 ; val; i++) {
-        str[i] = val % 10 + '0';
-        val /= 10;
-    }
-    str[i] = '\0';
-    strrev(str);
-}
 
 int nvh_init (const char * file, const char * nvh_name) {
     int fd;
@@ -142,13 +72,13 @@ int nvh_init (const char * file, const char * nvh_name) {
 //********-----convert it to int with 0 and -1 output, program don't need pmem base
 int nvh_create(const char *file, const char * nvh_name) {
     // cerr << "In nvh_create\n";   // DEBUG, REMOVE
-    size_t len = NVH_LENGTH;                // Length of one unit of pmem in byte
-    int flags = 0;                  // Flag for nvh_map_file, not in use, REMOVE
-    mode_t mode = 0644;             // File access or creation permissions
-    size_t mapped_len;              // Actual mapped length will be stored here
-    int is_pmem;                    // pmem or not will be stored here
-    char pname_h_str[32];           // A string to store pmem hash after int to str conv
-    struct nvh_length nvh_len;  // A 8-byte structure to hold pmem length
+    size_t len = NVH_LENGTH + TX_BUFFER_SIZE;   // Length of one unit of pmem in byte
+    int flags = 0;                              // Flag for nvh_map_file, not in use, REMOVE
+    mode_t mode = 0644;                         // File access or creation permissions
+    size_t mapped_len;                          // Actual mapped length will be stored here
+    int is_pmem;                                // pmem or not will be stored here
+    char pname_h_str[32];                       // A string to store pmem hash after int to str conv
+    struct nvh_length nvh_len;                  // A 8-byte structure to hold pmem length
 
     if (truncate(file, (off_t)len) < 0) {
         print_err ("nvh_create", "Unable to set the file to proper length");
