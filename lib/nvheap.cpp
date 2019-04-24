@@ -1,5 +1,6 @@
 #include "nvheap.h"
 #include "nvhutils.h"
+#include "nvhtx.h"
 using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
@@ -117,8 +118,10 @@ int nvh_open(const char *file) {
     nvh_persist ();
     if (!nvh_base_addr)
         return -1;
-    else
+    else {
+        tx_fix();
         return 0;
+    }
 }
 
 // Return offset of root pointer

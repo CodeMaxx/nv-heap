@@ -35,3 +35,6 @@ void tx_begin();
 void tx_add(NVptr ptr, uint size, uint flags=0);
 void tx_add_direct(void* address, uint size, uint flags=0);
 void tx_commit();
+
+// Called in nvh_open to undo broken transactions during previous runs
+void tx_fix();

@@ -101,3 +101,23 @@ void tx_commit() {
     tx_status stat;
     memcpy(nvh_tx_address, (void*) &stat, sizeof(tx_status));
 }
+
+
+void tx_fix() {
+    tx_status stat;
+    stat.retrieve_cur_status();
+    if(stat.running) {
+        cout << "Undo-ing broken transactions..." << endl;
+        void* address = nvh_base_addr + NVH_LENGTH + sizeof(tx_status);
+        for(int i = 0; i < stat.count; i++, address += sizeof(tx_obj)) {
+            tx_obj* to = address;
+            to.undo();
+        }
+        stat.count = 0;
+        stat.running = 0;
+        stat.set_cur_status();
+        cout << "Fixed broken transactions" << endl;
+        return;
+    }
+    cout << "No broken transactions found" << endl;
+}
