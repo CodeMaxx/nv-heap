@@ -33,31 +33,35 @@ void tx_status::set_cur_status() {
 
 // Transaction Object
 tx_obj::tx_obj() {
+    type = USER_WRITE;
     offset = 0;
     size = 0;
-    buf = NULL;
 }
 
-tx_obj::tx_obj(int64_t offset, uint size, char* buf) {
+tx_obj::tx_obj(uint type, int64_t offset, uint size) {
+    self.type = type;
     self.offset = offset;
     self.size = size;
-
-    for(int i = 0; i < size; i++) {
-        self.buf[i] = buf[i];
+    if(type == USER_WRITE) {
+        void* address = nvh_base_addr + offset;
+        memcpy((void*) &self.buf, address, size);
     }
 }
 
-tx_obj::tx_obj(void* address, uint size, char* buf) {
+tx_obj::tx_obj(uint type, void* address, uint size) {
+    self.type = type;
     self.offset = (int64_t) address - nvh_base_addr;
     self.size = size;
-
-    for(int i = 0; i < size; i++) {
-        self.buf[i] = buf[i];
-    }
+    if(type == USER_WRITE)
+        memcpy((void*) &self.buf, address, size);
 }
 
 void tx_obj::undo() {
-    memcpy((void*) (nvh_base_addr + offset), (void*) buf, size);
+    void* address = (void*) (nvh_base_addr + offset);
+    if(type == USER_WRITE)
+        memcpy(address, (void*) buf, size);
+    else if(type == MALLOC_CALL)
+        nvh_free(address, size);
 }
 
 void tx_obj::write_to_heap() {
@@ -77,7 +81,7 @@ void tx_begin() {
     memcpy(nvh_tx_address, &stat, sizeof(tx_status));
 }
 
-void tx_add(NVptr ptr, uint size, uint flags=0) {
+void tx_add(NVptr ptr, uint size, uint flags=ONLY_IN_TX) {
     tx_status stat;
     stat.retrieve_cur_status();
     if(!stat.running) {
@@ -88,8 +92,8 @@ void tx_add(NVptr ptr, uint size, uint flags=0) {
             exit(1);
         }
     }
-
-    tx_obj to(ptr.offset, size);
+    // Calculate buffer here
+    tx_obj to(USER_WRITE, ptr.offset, size);
     to.write_to_heap();
 }
 
@@ -102,6 +106,15 @@ void tx_commit() {
     memcpy(nvh_tx_address, (void*) &stat, sizeof(tx_status));
 }
 
+
+void tx_malloc(void* address, uint size) {
+    tx_status stat;
+    stat.retrieve_cur_status();
+    if(!stat.running)
+        return;
+    tx_obj to(MALLOC_CALL, address, size);
+    to.write_to_heap();
+}
 
 void tx_fix() {
     tx_status stat;

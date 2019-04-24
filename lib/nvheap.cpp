@@ -200,8 +200,10 @@ void *nvh_malloc (int size) {
             end_i ++;
             if ((end_i - start_i)*8 >= alloc_size)  // NOTE: 1bit per byte
             {
+                void* address = (void *)((char *)nvh_base_addr + HEADER_LEGTH + start_i * sizeof(uint64_t));
+                tx_malloc(address, size);
                 set_bit_range((uint64_t *)bm_start, start_i, end_i - 1, 1);
-                return (void *)((char *)nvh_base_addr + HEADER_LEGTH + start_i * sizeof(uint64_t));
+                return address;
             }
         }
         else {

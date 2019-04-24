@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <cerrno>
 
+// TODO: Try to get the library running on an actual pmem device
+
 #define NVH_LENGTH              32768
 #define HEADER_LEGTH            1024
 #define BITMAP_LENGTH           512 // TODO: Define these in terms of each other
