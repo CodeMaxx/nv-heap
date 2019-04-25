@@ -136,6 +136,7 @@ void * nvh_get_root () {
 int nvh_set_root (void *address) {
     NVPtr root;
     root = address;
+    tx_root();
     (*((int64_t *)nvh_base_addr + 128)) = root.get_offset();
     nvh_persist ();
     return 0;

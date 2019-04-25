@@ -13,6 +13,7 @@
 // Types of tx_obj objects
 #define USER_WRITE 0
 #define MALLOC_CALL 1
+#define FREE_CALL 2
 
 class tx_status {
 public:
@@ -46,8 +47,11 @@ void tx_add_direct(void* address, uint size, uint flags=ONLY_IN_TX);
 void tx_commit();
 
 void tx_malloc(void* address, uint size);
+void tx_root();
 
 // Called in nvh_open to undo broken transactions during previous runs
 void tx_fix();
+
+void _tx_malloc_free(void* address, uint size, uint type);
 
 #endif // NVHTX_H

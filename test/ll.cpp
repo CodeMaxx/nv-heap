@@ -14,9 +14,12 @@ struct ll * insert (struct ll * head, int64_t val) {
     // cout << "Insert: strted\n";
     if (!head) {
         // cout << "Insert: null head\n";
+        tx_begin();
         head = (struct ll *) nvh_malloc(sizeof(struct ll));
+        tx_add_direct(head, sizeof(struct ll));
         head -> val = val;
         head -> next = -1;
+        tx_commit();
     }
     else {
         // cout << "Insert: valid head\n";
@@ -24,10 +27,14 @@ struct ll * insert (struct ll * head, int64_t val) {
         while (temp->next.dptr()) {
             temp = (struct ll *) temp->next.dptr();
         }
+        tx_begin();
+        tx_add_direct(temp, sizeof(struct ll));
         temp1 = (struct ll *)nvh_malloc (sizeof(struct ll));
+        tx_add_direct(temp1, sizeof(struct ll));
         temp1 -> val = val;
         temp1 -> next = -1;
         temp -> next = (void *)temp1;
+        tx_commit();
     }
     nvh_set_root(head);
     // cout << nvh_get_root() << endl;

@@ -66,6 +66,13 @@ void tx_obj::undo() {
         memcpy(address, (void*) buf, size);
     else if(type == MALLOC_CALL)
         nvh_free(address, size);
+    else if(type == FREE_CALL) {
+        int alloc_size, round;
+        round = sizeof(uint64_t);
+        alloc_size = (round * (size / round)) + round *(round && (size % round));
+        set_bit_range ((uint64_t *)address, 0, alloc_size / 8 - 1, 1);
+        nvh_persist ();
+    }
 }
 
 void tx_obj::write_to_heap() {
@@ -111,13 +118,25 @@ void tx_commit() {
 }
 
 
-void tx_malloc(void* address, uint size) {
+void tx_root() {
+    tx_add_direct((void*) ((int64_t *)nvh_base_addr + 128), sizeof(int64_t), ALLOW_NO_TX);
+}
+
+void _tx_malloc_free(void* address, uint size, uint type) {
     tx_status stat;
     stat.retrieve_cur_status();
     if(!stat.running)
         return;
-    tx_obj to(MALLOC_CALL, address, size);
+    tx_obj to(type, address, size);
     to.write_to_heap();
+}
+
+void tx_malloc(void* address, uint size) {
+    _tx_malloc_free(address, size, MALLOC_CALL);
+}
+
+void tx_free(void* address, uint size) {
+    _tx_malloc_free(address, size, FREE_CALL);
 }
 
 void tx_fix() {
