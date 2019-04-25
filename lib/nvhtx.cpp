@@ -45,21 +45,21 @@ tx_obj::tx_obj(uint type, int64_t offset, uint size) {
     this->offset = offset;
     this->size = size;
     if(type == USER_WRITE) {
-        void* address = nvh_base_addr + offset;
+        void* address = (void*) ((char*) nvh_base_addr + offset);
         memcpy((void*) &this->buf, address, size);
     }
 }
 
 tx_obj::tx_obj(uint type, void* address, uint size) {
     this->type = type;
-    this->offset = (int64_t) address - nvh_base_addr;
+    this->offset = (int64_t) ((char*) address - (char*) nvh_base_addr);
     this->size = size;
     if(type == USER_WRITE)
         memcpy((void*) &this->buf, address, size);
 }
 
 void tx_obj::undo() {
-    void* address = (void*) (nvh_base_addr + offset);
+    void* address = (void*) ((char*) nvh_base_addr + offset);
     if(type == USER_WRITE)
         memcpy(address, (void*) buf, size);
     else if(type == MALLOC_CALL)
@@ -69,7 +69,7 @@ void tx_obj::undo() {
 void tx_obj::write_to_heap() {
     tx_status stat;
     stat.retrieve_cur_status();
-    void* address = nvh_tx_address + sizeof(tx_status) + stat.count*sizeof(tx_obj);
+    void* address = (void*) ((char*) nvh_tx_address + sizeof(tx_status) + stat.count*sizeof(tx_obj));
     memcpy(address, (void*) this, sizeof(tx_obj));
     stat.count++;
     stat.set_cur_status();
@@ -78,12 +78,12 @@ void tx_obj::write_to_heap() {
 
 // To Begin a transaction
 void tx_begin() {
-    nvh_tx_address = nvh_base_addr + NVH_LENGTH;
+    nvh_tx_address = (void*) ((char*) nvh_base_addr + NVH_LENGTH);
     tx_status stat(1, 0);
     memcpy(nvh_tx_address, &stat, sizeof(tx_status));
 }
 
-void tx_add(NVPtr ptr, uint size, uint flags=ONLY_IN_TX) {
+void tx_add(NVPtr ptr, uint size, uint flags) {
     tx_status stat;
     stat.retrieve_cur_status();
     if(!stat.running) {
@@ -99,8 +99,8 @@ void tx_add(NVPtr ptr, uint size, uint flags=ONLY_IN_TX) {
     to.write_to_heap();
 }
 
-void tx_add_direct(void* address, uint size, uint flags=ONLY_IN_TX) {
-    tx_add((int64_t) (address - nvh_base_addr), size, flags)
+void tx_add_direct(void* address, uint size, uint flags) {
+    tx_add((int64_t) ((char*) address - (char*) nvh_base_addr), size, flags);
 }
 
 void tx_commit() {
@@ -123,7 +123,7 @@ void tx_fix() {
     stat.retrieve_cur_status();
     if(stat.running) {
         cout << "Undo-ing broken transactions..." << endl;
-        void* address = nvh_base_addr + NVH_LENGTH + sizeof(tx_status);
+        char* address = (char*) nvh_base_addr + NVH_LENGTH + sizeof(tx_status);
         for(int i = 0; i < stat.count; i++, address += sizeof(tx_obj)) {
             tx_obj* to = (tx_obj*) address;
             to->undo();
