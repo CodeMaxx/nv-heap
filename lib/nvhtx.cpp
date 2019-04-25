@@ -87,7 +87,6 @@ void tx_obj::write_to_heap() {
 
 // To Begin a transaction
 void tx_begin() {
-    nvh_tx_address = (void*) ((char*) nvh_base_addr + NVH_LENGTH);
     tx_status stat(1, 0);
     memcpy(nvh_tx_address, &stat, sizeof(tx_status));
 }

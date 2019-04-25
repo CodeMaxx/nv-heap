@@ -74,7 +74,7 @@ int nvh_init (const char * file, const char * nvh_name) {
 //********-----convert it to int with 0 and -1 output, program don't need pmem base
 int nvh_create(const char *file, const char * nvh_name) {
     // cerr << "In nvh_create\n";   // DEBUG, REMOVE
-    size_t len = NVH_LENGTH + TX_BUFFER_SIZE;   // Length of one unit of pmem in byte
+    size_t len = TOTAL_SIZE;   // Length of one unit of pmem in byte
     int flags = 0;                              // Flag for nvh_map_file, not in use, REMOVE
     mode_t mode = 0644;                         // File access or creation permissions
     size_t mapped_len;                          // Actual mapped length will be stored here
@@ -95,7 +95,9 @@ int nvh_create(const char *file, const char * nvh_name) {
         return -1;
     }
 
-    memset (nvh_base_addr, 0, NVH_LENGTH);      // Filling the new file with 0
+    nvh_tx_address = (void*) ((char*) nvh_base_addr + NVH_LENGTH);
+
+    memset (nvh_base_addr, 0, TOTAL_SIZE);      // Filling the new file with 0
     nvh_persist ();                             // Persisting write
 
     *(uint64_t *)nvh_base_addr = hash64(nvh_name);          // Hash of pmem name 8-byte
@@ -120,6 +122,7 @@ int nvh_open(const char *file) {
     if (!nvh_base_addr)
         return -1;
     else {
+        nvh_tx_address = (void*) ((char*) nvh_base_addr + NVH_LENGTH);
         tx_fix();
         return 0;
     }
@@ -224,11 +227,11 @@ int nvh_close () {
     if (!nvh_base_addr)
         return -1;
     nvh_persist ();
-    return pmem_unmap (nvh_base_addr, (size_t)NVH_LENGTH);
+    return pmem_unmap (nvh_base_addr, (size_t) TOTAL_SIZE);
 }
 
 void nvh_persist () {
     if (!nvh_base_addr)
         return;
-    pmem_persist(nvh_base_addr, NVH_LENGTH);
+    pmem_persist(nvh_base_addr, TOTAL_SIZE);
 }

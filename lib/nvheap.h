@@ -22,6 +22,8 @@
 
 #define TX_BUFFER_SIZE          32768
 
+#define TOTAL_SIZE              NVH_LENGTH + TX_BUFFER_SIZE
+
 extern void* nvh_base_addr;
 
 struct nvh_length {

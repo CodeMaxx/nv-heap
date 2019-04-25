@@ -15,6 +15,8 @@
 #define MALLOC_CALL 1
 #define FREE_CALL 2
 
+extern void* nvh_tx_address;
+
 class tx_status {
 public:
     uint32_t running;
