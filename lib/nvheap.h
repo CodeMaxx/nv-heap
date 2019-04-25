@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <libpmem.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <cinttypes>

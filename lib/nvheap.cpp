@@ -1,6 +1,7 @@
 #include "nvheap.h"
 #include "nvhutils.h"
 #include "nvhtx.h"
+#include <libpmem.h>
 using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping

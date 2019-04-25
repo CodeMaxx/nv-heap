@@ -14,8 +14,6 @@
 #define USER_WRITE 0
 #define MALLOC_CALL 1
 
-void* nvh_tx_address;
-
 class tx_status {
 public:
     uint32_t running;

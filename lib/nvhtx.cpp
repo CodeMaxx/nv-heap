@@ -9,6 +9,8 @@ using namespace std;
 // TODO: What if these functions don't work atomically? Will it create a problem...check.
 // TODO: Add checks to see that the addresses sent are inside the heap
 
+void* nvh_tx_address;
+
 // Transaction Status
 tx_status::tx_status() {
     running = 0;

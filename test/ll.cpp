@@ -14,7 +14,7 @@ struct ll * insert (struct ll * head, int64_t val) {
     // cout << "Insert: strted\n";
     if (!head) {
         // cout << "Insert: null head\n";
-        head = (struct ll *)nvh_malloc (sizeof(struct ll));
+        head = (struct ll *) nvh_malloc(sizeof(struct ll));
         head -> val = val;
         head -> next = -1;
     }
