@@ -81,7 +81,6 @@ int nvh_create(const char *file, const char * nvh_name) {
     int is_pmem;                                // pmem or not will be stored here
     char pname_h_str[32];                       // A string to store pmem hash after int to str conv
     struct nvh_length nvh_len;                  // A 8-byte structure to hold pmem length
-
     if (truncate(file, (off_t)len) < 0) {
         print_err ("nvh_create", "Unable to set the file to proper length");
     }
@@ -117,7 +116,7 @@ int nvh_create(const char *file, const char * nvh_name) {
 }
 
 int nvh_open(const char *file) {
-    nvh_base_addr = (char *)pmem_map_file(file, 32768, PMEM_FILE_CREATE, 0644, NULL, NULL);
+    nvh_base_addr = (char *)pmem_map_file(file, TOTAL_SIZE, PMEM_FILE_CREATE, 0644, NULL, NULL);
     nvh_persist ();
     if (!nvh_base_addr)
         return -1;
@@ -233,5 +232,5 @@ int nvh_close () {
 void nvh_persist () {
     if (!nvh_base_addr)
         return;
-    pmem_persist(nvh_base_addr, TOTAL_SIZE);
+    pmem_persist(nvh_base_addr, NVH_LENGTH);
 }

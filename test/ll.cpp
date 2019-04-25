@@ -30,10 +30,10 @@ struct ll * insert (struct ll * head, int64_t val) {
         tx_begin();
         tx_add_direct(temp, sizeof(struct ll));
         temp1 = (struct ll *)nvh_malloc (sizeof(struct ll));
-        tx_add_direct(temp1, sizeof(struct ll));
-        temp1 -> val = val;
-        temp1 -> next = -1;
         temp -> next = (void *)temp1;
+        temp1 -> val = val;
+        exit(1);
+        temp1 -> next = -1;
         tx_commit();
     }
     nvh_set_root(head);
