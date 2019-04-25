@@ -1,3 +1,8 @@
+#ifndef NVPTR_H
+#define NVPTR_H
+
+#include <cinttypes>
+
 class NVPtr {
     int64_t offset;
 public:
@@ -8,3 +13,6 @@ public:
     void* dptr();
     int64_t get_offset();
 };
+
+
+#endif // NVPTR_H

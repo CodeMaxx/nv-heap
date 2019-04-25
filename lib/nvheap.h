@@ -1,3 +1,6 @@
+#ifndef NVHEAP_H
+#define NVHEAP_H
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -43,6 +46,7 @@ uint64_t hash64 (const char * str);
 void u64itostr (uint64_t val, char * str);
 int nvh_create(const char * file, const char * nvh_name);
 int nvh_open(const char *file);
-char *strrev(char *str);
 int set_bit_range (uint64_t *base, int start, int end, int bit);
 int test_bit (uint64_t * base, int position);
+
+#endif // NVHEAP_H

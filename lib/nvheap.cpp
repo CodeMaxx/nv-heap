@@ -166,19 +166,6 @@ int set_bit_range (uint64_t *base, int start, int end, int bit) {
     return 0;
 }
 
-// Copied from "https://stackoverflow.com/questions/8534274/is-the-strrev-function-not-available-in-linux"
-char *strrev(char *str) {
-    char *p1, *p2;
-    if (! str || ! *str)
-        return str;
-    for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2) {
-        *p1 ^= *p2;
-        *p2 ^= *p1;
-        *p1 ^= *p2;
-    }
-    return str;
-}
-
 void *nvh_malloc (int size) {
     void * bm_base;         // base address of bitmap
     void *bm_start;         // Start address of working bitmap

@@ -2,7 +2,9 @@
 #include "nvheap.h"
 #include "nvhutils.h"
 #include <cstdlib>
+#include <iostream>
 
+using namespace std;
 
 // TODO: What if these functions don't work atomically? Will it create a problem...check.
 // TODO: Add checks to see that the addresses sent are inside the heap
@@ -14,18 +16,18 @@ tx_status::tx_status() {
 }
 
 tx_status::tx_status(uint32_t running, uint32_t count) {
-    self.running = running;
-    self.count = count;
+    this->running = running;
+    this->count = count;
 }
 
 void tx_status::retrieve_cur_status() {
-    tx_status* cur = nvh_tx_address;
+    tx_status* cur = (tx_status*) nvh_tx_address;
     running = cur->running;
     count = cur->count;
 }
 
 void tx_status::set_cur_status() {
-    tx_status* cur = nvh_tx_address;
+    tx_status* cur = (tx_status*) nvh_tx_address;
     cur->running = running;
     cur->count = count;
 }
@@ -39,21 +41,21 @@ tx_obj::tx_obj() {
 }
 
 tx_obj::tx_obj(uint type, int64_t offset, uint size) {
-    self.type = type;
-    self.offset = offset;
-    self.size = size;
+    this->type = type;
+    this->offset = offset;
+    this->size = size;
     if(type == USER_WRITE) {
         void* address = nvh_base_addr + offset;
-        memcpy((void*) &self.buf, address, size);
+        memcpy((void*) &this->buf, address, size);
     }
 }
 
 tx_obj::tx_obj(uint type, void* address, uint size) {
-    self.type = type;
-    self.offset = (int64_t) address - nvh_base_addr;
-    self.size = size;
+    this->type = type;
+    this->offset = (int64_t) address - nvh_base_addr;
+    this->size = size;
     if(type == USER_WRITE)
-        memcpy((void*) &self.buf, address, size);
+        memcpy((void*) &this->buf, address, size);
 }
 
 void tx_obj::undo() {
@@ -67,9 +69,9 @@ void tx_obj::undo() {
 void tx_obj::write_to_heap() {
     tx_status stat;
     stat.retrieve_cur_status();
-    void* address = nvh_tx_address + sizeof(tx_status) + stat->count*sizeof(tx_obj);
+    void* address = nvh_tx_address + sizeof(tx_status) + stat.count*sizeof(tx_obj);
     memcpy(address, (void*) this, sizeof(tx_obj));
-    stat->count++;
+    stat.count++;
     stat.set_cur_status();
 }
 
@@ -81,7 +83,7 @@ void tx_begin() {
     memcpy(nvh_tx_address, &stat, sizeof(tx_status));
 }
 
-void tx_add(NVptr ptr, uint size, uint flags=ONLY_IN_TX) {
+void tx_add(NVPtr ptr, uint size, uint flags=ONLY_IN_TX) {
     tx_status stat;
     stat.retrieve_cur_status();
     if(!stat.running) {
@@ -93,7 +95,7 @@ void tx_add(NVptr ptr, uint size, uint flags=ONLY_IN_TX) {
         }
     }
     // Calculate buffer here
-    tx_obj to(USER_WRITE, ptr.offset, size);
+    tx_obj to(USER_WRITE, ptr.get_offset(), size);
     to.write_to_heap();
 }
 
@@ -123,8 +125,8 @@ void tx_fix() {
         cout << "Undo-ing broken transactions..." << endl;
         void* address = nvh_base_addr + NVH_LENGTH + sizeof(tx_status);
         for(int i = 0; i < stat.count; i++, address += sizeof(tx_obj)) {
-            tx_obj* to = address;
-            to.undo();
+            tx_obj* to = (tx_obj*) address;
+            to->undo();
         }
         stat.count = 0;
         stat.running = 0;

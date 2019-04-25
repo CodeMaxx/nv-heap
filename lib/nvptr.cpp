@@ -1,6 +1,8 @@
 #include "nvptr.h"
 #include "nvheap.h"
+#include <iostream>
 
+using namespace std;
 
 NVPtr::NVPtr() {
     offset = -1;

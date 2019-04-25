@@ -1,4 +1,8 @@
+#ifndef NVHTX_H
+#define NVHTX_H
+
 #include "nvptr.h"
+#include <sys/types.h>
 
 #define MAX_TX_DATA_SIZE 256
 
@@ -13,10 +17,10 @@
 void* nvh_tx_address;
 
 class tx_status {
+public:
     uint32_t running;
     uint32_t count;
 
-public:
     tx_status();
     tx_status(uint32_t running, uint32_t count);
     void retrieve_cur_status();
@@ -39,7 +43,7 @@ public:
 };
 
 void tx_begin();
-void tx_add(NVptr ptr, uint size, uint flags=ONLY_IN_TX);
+void tx_add(NVPtr ptr, uint size, uint flags=ONLY_IN_TX);
 void tx_add_direct(void* address, uint size, uint flags=ONLY_IN_TX);
 void tx_commit();
 
@@ -48,3 +52,4 @@ void tx_malloc(void* address, uint size);
 // Called in nvh_open to undo broken transactions during previous runs
 void tx_fix();
 
+#endif // NVHTX_H
