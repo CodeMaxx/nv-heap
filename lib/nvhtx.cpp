@@ -144,8 +144,8 @@ void tx_fix() {
     if(stat.running) {
         cout << "Undo-ing broken transactions..." << endl;
         char* address = (char*) nvh_base_addr + NVH_LENGTH + sizeof(tx_status);
-        for(int i = 0; i < stat.count; i++, address += sizeof(tx_obj)) {
-            tx_obj* to = (tx_obj*) address;
+        for(int i = stat.count - 1; i >= 0; i--) {
+            tx_obj* to = (tx_obj*) (address + i*sizeof(tx_obj));
             to->undo();
         }
         stat.count = 0;
