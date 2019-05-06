@@ -6,6 +6,7 @@ void *nvh_malloc (int size);                            // Allocate size byte in
 int nvh_free (void * address, int size);                // Free size byte from *address
 void nvh_persist ();                                    // Persisting write
 int nvh_close ();                                       // Closing the NV-Heap
+
 uint64_t nvh_meminfo ();                                // Currently used size in Byte
 
 // Non volatile Pointer
