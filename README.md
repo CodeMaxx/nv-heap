@@ -2,6 +2,13 @@
 
 Implementation of the simplified version of the [paper](https://courses.engr.illinois.edu/ece598ms/sp2018/papers/paper44.pdf)
 
+Done as a course project at IIT Bombay (Spring 2019) for CS695: Virtualisation and Cloud Computing
+
+### Authors
+
+[Akash Trehan](https://www.akashtrehan.com/) <br>
+Abhik Bose
+
 
 ### References
 
