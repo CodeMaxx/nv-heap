@@ -6,8 +6,8 @@
 
 using namespace std;
 
-// TODO: What if these functions don't work atomically? Will it create a problem...check.
-// TODO: Add checks to see that the addresses sent are inside the heap
+// TODO: What if these functions don't work atomically? Will it create a problem...check. // Abhik, DONE
+// TODO: Add checks to see that the addresses sent are inside the heap  // DONE, Abhik
 
 void* nvh_tx_address;
 
@@ -64,13 +64,17 @@ void tx_obj::undo() {
     void* address = (void*) ((char*) nvh_base_addr + offset);
     if(type == USER_WRITE)
         memcpy(address, (void*) buf, size);
-    else if(type == MALLOC_CALL)
+    else if(type == MALLOC_CALL){
         nvh_free(address, size);
+    }
     else if(type == FREE_CALL) {
         int alloc_size, round;
+        int start_i;
         round = sizeof(uint64_t);
+        void * bm_base = (char *)nvh_base_addr + 3 * sizeof(uint64_t);
         alloc_size = (round * (size / round)) + round *(round && (size % round));
-        set_bit_range ((uint64_t *)address, 0, alloc_size / 8 - 1, 1);
+        start_i = ((char *)address - (char * )nvh_base_addr)/8;
+        set_bit_range ((uint64_t *)bm_base, start_i, start_i + alloc_size / 8 - 1, 1);
         nvh_persist ();
     }
 }
@@ -108,7 +112,12 @@ void tx_add(NVPtr ptr, uint size, uint flags) {
 }
 
 void tx_add_direct(void* address, uint size, uint flags) {
-    tx_add((int64_t) ((char*) address - (char*) nvh_base_addr), size, flags);
+    if (!address)
+        return;
+    NVPtr ptr;
+    ptr = address;                                        // Abhik
+    tx_add(ptr, size, flags);                                   // Abhik
+    // tx_add((int64_t) ((char*) address - (char*) nvh_base_addr), size, flags);    // Abhik: Removed
 }
 
 void tx_commit() {

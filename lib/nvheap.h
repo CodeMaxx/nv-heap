@@ -25,6 +25,7 @@
 #define TOTAL_SIZE              NVH_LENGTH + TX_BUFFER_SIZE
 
 extern void* nvh_base_addr;
+extern int debug_mode;
 
 struct nvh_length {
     uint64_t length;
@@ -38,6 +39,7 @@ void *nvh_malloc (int size);                            // Allocate size byte in
 int nvh_free (void * address, int size);                // Free size byte from *address
 void nvh_persist ();                                    // Persisting write
 int nvh_close ();                                       // Closing the NV-Heap
+uint64_t nvh_meminfo ();								// Check currently used size in byte
 
 /*-----Following Functions are ment for internal use by Library-----
 -------User Written program should not use them---------------------

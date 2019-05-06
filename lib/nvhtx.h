@@ -49,6 +49,7 @@ void tx_add_direct(void* address, uint size, uint flags=ONLY_IN_TX);
 void tx_commit();
 
 void tx_malloc(void* address, uint size);
+void tx_free(void* address, uint size);
 void tx_root();
 
 // Called in nvh_open to undo broken transactions during previous runs

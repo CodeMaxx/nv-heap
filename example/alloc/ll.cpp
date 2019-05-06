@@ -1,7 +1,5 @@
 #include <iostream>
 #include <nvheap.h>
-#include <nvptr.h>
-#include <nvhtx.h>
 
 using namespace std;
 
@@ -12,9 +10,7 @@ struct ll {
 
 struct ll * insert (struct ll * head, int64_t val) {
     struct ll * temp, *temp1;
-    // cout << "Insert: strted\n";
     if (!head) {
-        // cout << "Insert: null head\n";
         tx_begin();
         head = (struct ll *) nvh_malloc(sizeof(struct ll));
         tx_add_direct(head, sizeof(struct ll));
@@ -23,7 +19,6 @@ struct ll * insert (struct ll * head, int64_t val) {
         tx_commit();
     }
     else {
-        // cout << "Insert: valid head\n";
         temp = head;
         while (temp->next.dptr()) {
             temp = (struct ll *) temp->next.dptr();
@@ -33,17 +28,15 @@ struct ll * insert (struct ll * head, int64_t val) {
         temp1 = (struct ll *)nvh_malloc (sizeof(struct ll));
         temp -> next = (void *)temp1;
         temp1 -> val = val;
-        exit(1);
         temp1 -> next = -1;
         tx_commit();
     }
     nvh_set_root(head);
-    // cout << nvh_get_root() << endl;
-    // cout << "Insert: done\n";
     return head;
 }
 
 struct ll * remove (struct ll * head, int val) {
+    tx_add_direct(head, sizeof(struct ll));             //Abhik
     struct ll *temp, *curr, *next;
     if (!head)
         return head;
@@ -59,6 +52,7 @@ struct ll * remove (struct ll * head, int val) {
             if (next -> val == val) {
                 temp = next;
                 next = (struct ll *) next->next.dptr();
+                tx_add_direct(curr, sizeof(struct ll));     //Abhik
                 curr -> next = next;
                 nvh_free(temp, sizeof(struct ll *));
                 break;
@@ -73,9 +67,7 @@ struct ll * remove (struct ll * head, int val) {
 
 void print (struct ll * head) {
     struct ll * temp = head;
-    // cout << "In print \n";
     while (temp) {
-        // cout << "print: In while";
         cout << temp -> val << "->";
         temp = (struct ll *) temp->next.dptr();
     }
@@ -113,13 +105,12 @@ int main (int argc, char * argv[]) {
             case ('d'):
             case ('D'):
             cin >> val;
+            tx_begin();
             head = remove (head, val);
+            tx_commit();
             break;
         }
     }
-    // Enable this to check Pointer safety
-    // cout << "Main: Calling lower abort\n";
-    // head -> next = nvh_pptr((void *)100);
     nvh_close ();
     return 0;
 }

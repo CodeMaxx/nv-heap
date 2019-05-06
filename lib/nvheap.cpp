@@ -5,12 +5,14 @@
 using namespace std;
 
 void * nvh_base_addr = NULL;    // Base Virtual address returned after mapping
+int debug_mode;
 
 int nvh_init (const char * file, const char * nvh_name) {
     int fd;
     uint64_t pname_h;           // Hash of nvh_name will be read to here from fd
     uint64_t pname_hh;          // Hash to hash of nvh_name will be read in this from fd
     char pname_h_str[32];       // string correspond to pname_h
+    debug_mode = 0;             // Setting debug mode to 0 = no dubug output
 
     if (!nvh_name || !strlen(nvh_name)) {
         print_err("nvh_init", "Blank nvh_name given");
@@ -184,7 +186,7 @@ void *nvh_malloc (int size) {
     bm_base = (char *)nvh_base_addr + 3 * sizeof(uint64_t);
     header_allocation = HEADER_LEGTH / ALLOC_RATIO_BYTE_BYTE;
     bm_start = (char *)bm_base + header_allocation;
-    max_i = 4096 - 128 - 1;     // -1 bcz last offset = 4097 and 128 filled
+    max_i = NVH_LENGTH/ALLOC_RATIO_BYTE_BIT - 128 - 1;     // -1 bcz last offset = 4097 and 128 filled
 
     for (start_i = end_i = 0 ; start_i <= max_i && end_i <= max_i;) {
         if (test_bit((uint64_t *)bm_start, end_i) == 0) {
@@ -192,7 +194,7 @@ void *nvh_malloc (int size) {
             if ((end_i - start_i)*8 >= alloc_size)  // NOTE: 1bit per byte
             {
                 void* address = (void *)((char *)nvh_base_addr + HEADER_LEGTH + start_i * sizeof(uint64_t));
-                tx_malloc(address, size);
+                tx_malloc(address, alloc_size);
                 set_bit_range((uint64_t *)bm_start, start_i, end_i - 1, 1);
                 return address;
             }
@@ -212,12 +214,32 @@ void *nvh_malloc (int size) {
     return NULL;
 }
 
+// Returns currently used size of the total memory in byte includein header etc
+uint64_t nvh_meminfo () {
+    void * bm_base = (char *)nvh_base_addr + 3 * sizeof(uint64_t);  // base address of bitmap
+    int total_bits = NVH_LENGTH/ALLOC_RATIO_BYTE_BIT;    //Total no of bits in bitmap
+    int index;
+    uint64_t used_bits = 0;  // Number of used bits
+    for (index = 0; index < total_bits; index++) {
+        if (test_bit((uint64_t *)bm_base, index) == 0)
+            continue;
+        used_bits++;
+    }
+    return (used_bits * ALLOC_RATIO_BYTE_BIT);
+}
+
 // Currently always returning 0, Latter it'll check some error etc and return -1 for error
 int nvh_free (void * address, int size) {
+    tx_free (address, size);
     int alloc_size, round;
+    int start_i;
+
     round = sizeof(uint64_t);
+    void * bm_base = (char *)nvh_base_addr + 3 * sizeof(uint64_t);
     alloc_size = (round * (size / round)) + round *(round && (size % round));
-    set_bit_range ((uint64_t *)address, 0, alloc_size / 8 - 1, 0);
+    start_i = ((char *)address - (char * )nvh_base_addr)/8;
+    bzero(address, size);
+    set_bit_range ((uint64_t *)bm_base, start_i, start_i + alloc_size / 8 - 1, 0);
     nvh_persist ();
     return 0;
 }
